@@ -16,19 +16,12 @@ public class PlayerController : MonoBehaviour
     public bool isInvincible = false;
 
     [Header("Invincibility Settings")]
-    public float invincibilityDuration = 2f; 
-    public float flashInterval = 0.1f;       
-
-    [Header("Fireball Settings")]
-    public GameObject fireballPrefab; // Drag your Fireball prefab here in the inspector
-    public Transform firePoint;       // Create an empty GameObject child on Mario for the spawn point
+    public float invincibilityDuration = 2f; // Seconds of invincibility after taking a hit
+    public float flashInterval = 0.1f;       // How fast Mario flashes
 
     private Vector3 originalScale;
     private float originalJumpForce;
     private SpriteRenderer spriteRenderer;
-
-    private float fireballCooldown = 0.3f;
-    private float lastFireTime = 0f;
 
     void Start()
     {
@@ -51,13 +44,6 @@ public class PlayerController : MonoBehaviour
             cround = true;
         } else if (Input.GetButtonUp("Cround")){
             cround = false;
-        }
-
-        // --- NEW: Shooting Input ---
-        // You can change "Fire1" to a specific KeyCode like Input.GetKeyDown(KeyCode.Z)
-        if (Input.GetButtonDown("Fire1") && isFireShooting)
-        {
-            Shoot();
         }
     }
 
@@ -82,47 +68,25 @@ public class PlayerController : MonoBehaviour
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
         }
-        // --- UPDATED: Fire Flower Logic ---
-        else if (itemName == "flower") 
+
+        else if (itemName == "fireball")
         {
-            transform.localScale = new Vector3(1.6f, 1.6f, 1f); // Fire Mario is also big
-            controller.m_JumpForce = originalJumpForce * 1.2f;
-            isBig = true;
-            isFireShooting = true;
+            
         }
-    }
-
-    // --- NEW: Shoot Method ---
-    void Shoot()
-    {   
-        if (firePoint == null)
-        {
-            Debug.LogError("Fire point not assigned!");
-            return;
-        }
-
-        if (Time.time - lastFireTime < fireballCooldown) return;
-
-        GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
-        Fireball fireballScript = fireball.GetComponent<Fireball>();
-        
-        // Determine the direction Mario is facing. 
-        // Assuming your CharacterController2D flips the localScale.x when turning.
-        float facingDirection = Mathf.Sign(transform.localScale.x);
-        fireballScript.SetDirection(facingDirection);
-        lastFireTime = Time.time;
     }
 
     public void TakeDamage()
     {
+        // Ignore damage entirely during invincibility window
         if (isInvincible) return;
 
         if (isBig)
         {
+            // Shrink back to small Mario and trigger invincibility window
             transform.localScale = originalScale;
             controller.m_JumpForce = originalJumpForce;
             isBig = false;
-            isFireShooting = false; // Lose fire ability on damage
+            isFireShooting = false;
             StartCoroutine(InvincibilityCoroutine());
         }
         else
@@ -131,6 +95,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Grants invincibility and makes Mario flash for the duration
     private IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;
@@ -138,11 +103,13 @@ public class PlayerController : MonoBehaviour
         float elapsed = 0f;
         while (elapsed < invincibilityDuration)
         {
+            // Toggle visibility to create a flashing effect
             spriteRenderer.enabled = !spriteRenderer.enabled;
             yield return new WaitForSeconds(flashInterval);
             elapsed += flashInterval;
         }
 
+        // Ensure Mario is visible and invincibility is off when done
         spriteRenderer.enabled = true;
         isInvincible = false;
     }

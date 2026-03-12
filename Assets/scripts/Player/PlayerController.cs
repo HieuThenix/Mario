@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
 
         // --- NEW: Shooting Input ---
         // You can change "Fire1" to a specific KeyCode like Input.GetKeyDown(KeyCode.Z)
-        if (Input.GetButtonDown("Fire1") && isFireShooting)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && isFireShooting)
         {
             Shoot();
         }

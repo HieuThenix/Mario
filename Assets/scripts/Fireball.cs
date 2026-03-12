@@ -11,45 +11,48 @@ public class Fireball : MonoBehaviour
     public void SetDirection(float dir)
     {
         direction = dir;
-        // Give the fireball an initial downward arc and forward speed
         rb.velocity = new Vector2(speed * direction, -bounceForce);
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        // Force the fireball to always move left or right at a constant speed, 
-        // regardless of physics friction slowing it down.
+        // Keep the horizontal speed constant, but allow Unity's gravity to handle the Y velocity
         rb.velocity = new Vector2(speed * direction, rb.velocity.y);
     }
 
-
-    // This detects when the fireball enters ANY trigger collider (including enemies)
-    // but Enemy uses Is Trigger = true, so we need OnTriggerEnter2D instead
+    // 1. Handles hitting TRIGGERS (like your Enemies)
     void OnTriggerEnter2D(Collider2D collision)
     {
-        // If it hits an enemy
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            // Get and call the Enemy's Die method
-            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-            if (enemy != null)
+            if (collision.TryGetComponent<Enemy>(out Enemy enemy))
             {
                 enemy.Die();
             }
-            
-            // Destroy the fireball
-            Destroy(gameObject);
-        }
-        // Optional: Handle wall collisions if they are solid (not triggers)
-        // Note: If walls are triggers, this will also trigger here
-        else if (collision.gameObject.CompareTag("Wall")) 
-        {
-            // Destroy fireball if it hits a solid wall
             Destroy(gameObject);
         }
     }
 
-    // Destroy the fireball if it goes off-screen
+    // 2. Handles hitting SOLID objects (like Floors and Walls)
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // OPTIMIZATION: GetContact(0) gets the first contact point without allocating a new array in memory!
+        ContactPoint2D contact = collision.GetContact(0);
+
+        // Check the X value of the normal to see if we hit a vertical wall
+        if (Mathf.Abs(contact.normal.x) > 0.5f)
+        {
+            // We hit a wall! Vaporize.
+            Destroy(gameObject);
+        }
+        // Check the Y value to see if we hit a floor from above
+        else if (contact.normal.y > 0.5f)
+        {
+            // We hit the floor! Apply the bounce force.
+            rb.velocity = new Vector2(rb.velocity.x, bounceForce);
+        }
+    }
+
     void OnBecameInvisible()
     {
         Destroy(gameObject);

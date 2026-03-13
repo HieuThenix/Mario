@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed * Time.fixedDeltaTime;
+        horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;
         animator.SetFloat("Speed", Mathf.Abs(horizontalMove));
 
         if (Input.GetButtonDown("Jump")){
@@ -68,7 +68,8 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        controller.Move(horizontalMove, cround, jump);
+        // Apply Time.fixedDeltaTime here where physics are actually calculated!
+        controller.Move(horizontalMove * Time.fixedDeltaTime, cround, jump);
         jump = false;
     }
 
@@ -76,16 +77,20 @@ public class PlayerController : MonoBehaviour
     {   
         itemName = itemName.ToLower();
 
+        // Check which direction Mario is currently facing (1 for right, -1 for left)
+        float currentDirection = Mathf.Sign(transform.localScale.x);
+
         if (itemName == "mushroom")
         {
-            transform.localScale = new Vector3(1.6f, 1.6f, 1f);
+            // Multiply the new scale by the current direction to preserve rotation!
+            transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f);
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
         }
-        // --- UPDATED: Fire Flower Logic ---
         else if (itemName == "flower") 
         {
-            transform.localScale = new Vector3(1.6f, 1.6f, 1f); // Fire Mario is also big
+            // Multiply the new scale by the current direction to preserve rotation!
+            transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f); 
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
             isFireShooting = true;

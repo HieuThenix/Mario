@@ -20,17 +20,14 @@ public class Collectible : MonoBehaviour
 
             if (player != null)
             {
-                // Check if the item is a power-up before calling the function
-                // Note: We use 'true' as the 3rd argument to ignore case (mushroom vs Mushroom)
-                itemName = itemName.ToLower();
-                if (Enum.IsDefined(typeof(PoweredupItem), itemName))
+                // OPTIMIZATION: TryParse is much faster than IsDefined and ignores case automatically if we pass 'true'
+                if (Enum.TryParse(itemName, true, out PoweredupItem parsedItem))
                 {
                     player.OnPoweredUpItemCollected(itemName);
-                    Collect(); // Only destroy after the player gets the item
+                    Collect(); 
                 }
                 else 
                 {
-                    // If it's just a coin or something else, just collect it
                     Collect();
                 }
             }

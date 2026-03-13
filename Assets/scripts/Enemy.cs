@@ -17,21 +17,18 @@ public class Enemy : MonoBehaviour
 
     void HandleContact(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        // OPTIMIZATION: TryGetComponent is faster and does the null check for us!
+        if (other.CompareTag("Player") && other.TryGetComponent<PlayerController>(out PlayerController player))
         {
-            PlayerController player = other.GetComponent<PlayerController>();
-            if (player != null)
-            {
-                bool isStomping = other.bounds.min.y > transform.position.y;
+            bool isStomping = other.bounds.min.y > transform.position.y;
 
-                if (isStomping)
-                {
-                    Die(); // Player stomped the enemy — kill it
-                }
-                else
-                {
-                    player.TakeDamage(); // Shrinks if big, dies if small (ignored if invincible)
-                }
+            if (isStomping)
+            {
+                Die(); 
+            }
+            else
+            {
+                player.TakeDamage(); 
             }
         }
     }

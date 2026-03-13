@@ -29,6 +29,7 @@ public class CharacterController2D : MonoBehaviour
 
 	public BoolEvent OnCrouchEvent;
 	private bool m_wasCrouching = false;
+	private Collider2D[] m_GroundColliders = new Collider2D[10];
 
 	private void Awake()
 	{
@@ -43,21 +44,21 @@ public class CharacterController2D : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		bool wasGrounded = m_Grounded;
-		m_Grounded = false;
+	    bool wasGrounded = m_Grounded;
+	    m_Grounded = false;
 
-		// The player is grounded if a circlecast to the groundcheck position hits anything designated as ground
-		// This can be done using layers instead but Sample Assets will not overwrite your project settings.
-		Collider2D[] colliders = Physics2D.OverlapCircleAll(m_GroundCheck.position, k_GroundedRadius, m_WhatIsGround);
-		for (int i = 0; i < colliders.Length; i++)
-		{
-			if (colliders[i].gameObject != gameObject)
-			{
-				m_Grounded = true;
-				if (!wasGrounded)
-					OnLandEvent.Invoke();
-			}
-		}
+	    // OPTIMIZATION: OverlapCircleNonAlloc reuses the m_GroundColliders array instead of making a new one!
+	    int collidersCount = Physics2D.OverlapCircleNonAlloc(m_GroundCheck.position, k_GroundedRadius, m_GroundColliders, m_WhatIsGround);
+	    
+	    for (int i = 0; i < collidersCount; i++)
+	    {
+	        if (m_GroundColliders[i].gameObject != gameObject)
+	        {
+	            m_Grounded = true;
+	            if (!wasGrounded)
+	                OnLandEvent.Invoke();
+	        }
+	    }
 	}
 
 

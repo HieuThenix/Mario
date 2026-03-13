@@ -2,14 +2,11 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    // Fires ONCE when Mario first touches the enemy
     void OnTriggerEnter2D(Collider2D other)
     {
         HandleContact(other);
     }
 
-    // Fires EVERY FRAME while Mario stays inside the enemy's collider.
-    // This catches the case where invincibility expires while still touching.
     void OnTriggerStay2D(Collider2D other)
     {
         HandleContact(other);
@@ -17,9 +14,16 @@ public class Enemy : MonoBehaviour
 
     void HandleContact(Collider2D other)
     {
-        // OPTIMIZATION: TryGetComponent is faster and does the null check for us!
         if (other.CompareTag("Player") && other.TryGetComponent<PlayerController>(out PlayerController player))
         {
+            // --- NEW: Check for Star Power First ---
+            if (player.isStarPower)
+            {
+                Die();
+                return; // Stop further checks, the enemy is dead!
+            }
+
+            // Original stomp detection
             bool isStomping = other.bounds.min.y > transform.position.y;
 
             if (isStomping)
@@ -35,7 +39,6 @@ public class Enemy : MonoBehaviour
 
     public void Die()
     {
-        // Called when enemy is killed (by stomp, fireball, or other means)
         Destroy(gameObject);
     }
 }

@@ -14,14 +14,18 @@ public class PlayerController : MonoBehaviour
     public bool isBig = false;
     public bool isFireShooting = false;
     public bool isInvincible = false;
+    
+    // --- NEW: Star Power Settings ---
+    public bool isStarPower = false;
+    public float starDuration = 5f;
 
     [Header("Invincibility Settings")]
     public float invincibilityDuration = 2f; 
     public float flashInterval = 0.1f;       
 
     [Header("Fireball Settings")]
-    public GameObject fireballPrefab; // Drag your Fireball prefab here in the inspector
-    public Transform firePoint;       // Create an empty GameObject child on Mario for the spawn point
+    public GameObject fireballPrefab; 
+    public Transform firePoint;       
 
     private Vector3 originalScale;
     private float originalJumpForce;
@@ -53,8 +57,6 @@ public class PlayerController : MonoBehaviour
             cround = false;
         }
 
-        // --- NEW: Shooting Input ---
-        // You can change "Fire1" to a specific KeyCode like Input.GetKeyDown(KeyCode.Z)
         if (Input.GetKeyDown(KeyCode.LeftShift) && isFireShooting)
         {
             Shoot();
@@ -68,7 +70,6 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Apply Time.fixedDeltaTime here where physics are actually calculated!
         controller.Move(horizontalMove * Time.fixedDeltaTime, cround, jump);
         jump = false;
     }
@@ -77,27 +78,49 @@ public class PlayerController : MonoBehaviour
     {   
         itemName = itemName.ToLower();
 
-        // Check which direction Mario is currently facing (1 for right, -1 for left)
         float currentDirection = Mathf.Sign(transform.localScale.x);
 
         if (itemName == "mushroom")
         {
-            // Multiply the new scale by the current direction to preserve rotation!
             transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f);
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
         }
         else if (itemName == "flower") 
         {
-            // Multiply the new scale by the current direction to preserve rotation!
             transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f); 
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
             isFireShooting = true;
         }
+        // --- NEW: Star Power Logic ---
+        else if (itemName == "star")
+        {
+            StartCoroutine(StarPowerCoroutine());
+        }
     }
 
-    // --- NEW: Shoot Method ---
+    // --- NEW: Star Power Coroutine ---
+    private IEnumerator StarPowerCoroutine()
+    {
+        isStarPower = true;
+        float elapsed = 0f;
+
+        while (elapsed < starDuration)
+        {
+            // Create a rainbow flash effect using HSV colors
+            float hue = Mathf.Repeat(Time.time * 5f, 1f); // 5f is the color cycle speed
+            spriteRenderer.color = Color.HSVToRGB(hue, 1f, 1f);
+            
+            elapsed += Time.deltaTime;
+            yield return null; // Wait for the next frame
+        }
+
+        // Reset back to normal after 5 seconds
+        spriteRenderer.color = Color.white; 
+        isStarPower = false;
+    }
+
     void Shoot()
     {   
         if (firePoint == null)
@@ -111,8 +134,6 @@ public class PlayerController : MonoBehaviour
         GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
         Fireball fireballScript = fireball.GetComponent<Fireball>();
         
-        // Determine the direction Mario is facing. 
-        // Assuming your CharacterController2D flips the localScale.x when turning.
         float facingDirection = Mathf.Sign(transform.localScale.x);
         fireballScript.SetDirection(facingDirection);
         lastFireTime = Time.time;
@@ -120,14 +141,15 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage()
     {
-        if (isInvincible) return;
+        // --- UPDATED: Prevent damage if Mario has Star Power OR standard Invincibility ---
+        if (isInvincible || isStarPower) return;
 
         if (isBig)
         {
             transform.localScale = originalScale;
             controller.m_JumpForce = originalJumpForce;
             isBig = false;
-            isFireShooting = false; // Lose fire ability on damage
+            isFireShooting = false; 
             StartCoroutine(InvincibilityCoroutine());
         }
         else

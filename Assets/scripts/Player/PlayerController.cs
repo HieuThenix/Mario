@@ -178,4 +178,14 @@ public class PlayerController : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        // Check if the object we collided with has the tag "Pit"
+        if (other.CompareTag("Pit"))
+        {
+            Die(); // This calls your existing Die() method which resets the scene
+        }
+    }
 }

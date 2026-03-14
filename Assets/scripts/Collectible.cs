@@ -29,6 +29,7 @@ public class Collectible : MonoBehaviour
                 else 
                 {   
                     GameManager.instance.AddCoin();
+                    // Add 200 score for one coin
                     GameManager.instance.AddScore(200);
                     Collect();
                 }

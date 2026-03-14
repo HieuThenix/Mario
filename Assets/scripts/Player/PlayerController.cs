@@ -176,7 +176,6 @@ public class PlayerController : MonoBehaviour
 
     public void Die()
     {   
-        GameManager.instance.lives--;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

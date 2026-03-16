@@ -15,3 +15,9 @@ MonoBehaviour:
   enemyName: Goomba
   scoreValue: 100
   moveSpeed: 5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  wallDetectionDistance: 0.2
+  ledgeCheckOffset: 0.6
+  ledgeDetectionDistance: 0.5

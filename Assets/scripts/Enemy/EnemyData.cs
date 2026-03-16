@@ -11,11 +11,11 @@ public class EnemyData : ScriptableObject
     public float moveSpeed = 1f;
 
     [Header("Patrol Detection")]
-    // The LayerMask the raycasts check against — assign your "Ground" layer here
+    // The LayerMask the raycasts check against — assign "Ground" layer here
     public LayerMask groundLayer;
 
     // How far in front of the enemy we check for a wall (horizontal ray)
-    public float wallDetectionDistance = 0.2f;
+    public float wallDetectionDistance = 0.5f;
 
     // How far ahead of the feet we place the ledge-check ray origin (horizontal offset)
     public float ledgeCheckOffset = 0.6f;

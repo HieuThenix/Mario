@@ -8,7 +8,9 @@ public class Enemy : MonoBehaviour
 
     private Rigidbody2D rb;
     private float direction = -1f; // -1 means starting by moving left
-
+    private float lastFlipTime = 0f;
+    private const float flipCooldown = 0.2f; // seconds before allowing another flip
+    
     void Start()
     {
         // Grab the Rigidbody2D component when the enemy spawns
@@ -19,22 +21,19 @@ public class Enemy : MonoBehaviour
     {
         if (enemyData != null)
         {
-            // Cast from the enemy's center
             Vector2 rayOrigin = new Vector2(transform.position.x, transform.position.y);
             Vector2 rayDirection = new Vector2(direction, 0f);
 
             RaycastHit2D hit = Physics2D.Raycast(rayOrigin, rayDirection, enemyData.wallDetectionDistance, enemyData.groundLayer);
-
-            // Draw the ray in the Scene view for debugging
             Debug.DrawRay(rayOrigin, rayDirection * enemyData.wallDetectionDistance, Color.red);
 
-            // Check if the ray hit something
-            if (hit.collider != null)
+            // Only flip if enough time has passed since the last flip
+            if (hit.collider != null && Time.time - lastFlipTime > flipCooldown)
             {
                 Flip();
+                lastFlipTime = Time.time;
             }
 
-            // Keep the enemy's current Y velocity (for gravity/falling) but set the X velocity based on speed and direction
             rb.velocity = new Vector2(enemyData.moveSpeed * direction, rb.velocity.y);
         }
     }

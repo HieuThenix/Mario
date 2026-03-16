@@ -27,6 +27,11 @@ public class PlayerController : MonoBehaviour
     public GameObject fireballPrefab; 
     public Transform firePoint;       
 
+    // --- NEW: Layer Settings for Invincibility ---
+    [Header("Layer Names")]
+    public string playerLayerName = "Player";
+    public string enemyLayerName = "Enemy";
+
     private Vector3 originalScale;
     private float originalJumpForce;
     private SpriteRenderer spriteRenderer;
@@ -93,14 +98,12 @@ public class PlayerController : MonoBehaviour
             isBig = true;
             isFireShooting = true;
         }
-        // --- NEW: Star Power Logic ---
         else if (itemName == "star")
         {
             StartCoroutine(StarPowerCoroutine());
         }
     }
 
-    // --- NEW: Star Power Coroutine ---
     private IEnumerator StarPowerCoroutine()
     {
         isStarPower = true;
@@ -108,15 +111,13 @@ public class PlayerController : MonoBehaviour
 
         while (elapsed < starDuration)
         {
-            // Create a rainbow flash effect using HSV colors
-            float hue = Mathf.Repeat(Time.time * 5f, 1f); // 5f is the color cycle speed
+            float hue = Mathf.Repeat(Time.time * 5f, 1f); 
             spriteRenderer.color = Color.HSVToRGB(hue, 1f, 1f);
             
             elapsed += Time.deltaTime;
-            yield return null; // Wait for the next frame
+            yield return null; 
         }
 
-        // Reset back to normal after 5 seconds
         spriteRenderer.color = Color.white; 
         isStarPower = false;
     }
@@ -141,7 +142,6 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage()
     {
-        // --- UPDATED: Prevent damage if Mario has Star Power OR standard Invincibility ---
         if (isInvincible || isStarPower) return;
 
         if (isBig)
@@ -162,6 +162,19 @@ public class PlayerController : MonoBehaviour
     {
         isInvincible = true;
 
+        // --- NEW: Ignore collisions between Mario and Enemies ---
+        int playerLayer = LayerMask.NameToLayer(playerLayerName);
+        int enemyLayer = LayerMask.NameToLayer(enemyLayerName);
+        
+        if (playerLayer != -1 && enemyLayer != -1)
+        {
+            Physics2D.IgnoreLayerCollision(playerLayer, enemyLayer, true);
+        }
+        else
+        {
+            Debug.LogWarning("Player or Enemy layer not found! Please check your layer names.");
+        }
+
         float elapsed = 0f;
         while (elapsed < invincibilityDuration)
         {
@@ -172,6 +185,12 @@ public class PlayerController : MonoBehaviour
 
         spriteRenderer.enabled = true;
         isInvincible = false;
+
+        // --- NEW: Restore collisions when invincibility ends ---
+        if (playerLayer != -1 && enemyLayer != -1)
+        {
+            Physics2D.IgnoreLayerCollision(playerLayer, enemyLayer, false);
+        }
     }
 
     public void Die()
@@ -179,13 +198,11 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Check if the object we collided with has the tag "Pit"
         if (other.CompareTag("Pit"))
         {
-            Die(); // This calls your existing Die() method which resets the scene
+            Die(); 
         }
     }
 }

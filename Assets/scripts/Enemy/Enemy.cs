@@ -10,7 +10,7 @@ public class Enemy : MonoBehaviour
     private float direction = -1f; // -1 means starting by moving left
     private float lastFlipTime = 0f;
     private const float flipCooldown = 0.2f; // seconds before allowing another flip
-    
+
     void Start()
     {
         // Grab the Rigidbody2D component when the enemy spawns
@@ -83,11 +83,25 @@ public class Enemy : MonoBehaviour
                 return; // Stop further checks, the enemy is dead!
             }
 
-            // Original stomp detection
-            bool isStomping = other.bounds.min.y > transform.position.y;
+            // 1. Is Mario physically above the enemy?
+            bool isAbove = other.bounds.min.y > transform.position.y;
+            
+            // 2. Is Mario currently falling downwards? (velocity.y <= 0)
+            // other.attachedRigidbody grabs the Rigidbody2D component safely
+            bool isFalling = other.attachedRigidbody != null && other.attachedRigidbody.velocity.y <= 0f;
 
-            if (isStomping)
+            if (isAbove && isFalling)
             {
+                // Make Mario bounce off the enemy!
+                if (other.attachedRigidbody != null)
+                {
+                    // Reset his vertical falling speed, then apply an upward hop
+                    other.attachedRigidbody.velocity = new Vector2(other.attachedRigidbody.velocity.x, 0f);
+                    
+                    // Note: 500f is a solid bounce force, but you can adjust this number!
+                    other.attachedRigidbody.AddForce(new Vector2(0f, 500f)); 
+                }
+
                 Die();
             }
             else

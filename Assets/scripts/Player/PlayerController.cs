@@ -140,13 +140,18 @@ public class PlayerController : MonoBehaviour
         lastFireTime = Time.time;
     }
 
-    public void TakeDamage()
+public void TakeDamage()
     {
         if (isInvincible || isStarPower) return;
 
         if (isBig)
         {
-            transform.localScale = originalScale;
+            // Preserve the direction Mario is currently facing ---
+            float currentDirection = Mathf.Sign(transform.localScale.x);
+            
+            // Apply the original scale, but multiply the X by the current direction
+            transform.localScale = new Vector3(Mathf.Abs(originalScale.x) * currentDirection, originalScale.y, originalScale.z);
+            
             controller.m_JumpForce = originalJumpForce;
             isBig = false;
             isFireShooting = false; 
@@ -157,7 +162,7 @@ public class PlayerController : MonoBehaviour
             Die();
         }
     }
-
+    
     private IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;

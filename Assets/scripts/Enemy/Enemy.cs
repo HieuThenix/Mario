@@ -98,8 +98,8 @@ public class Enemy : MonoBehaviour
                     // Reset his vertical falling speed, then apply an upward hop
                     other.attachedRigidbody.velocity = new Vector2(other.attachedRigidbody.velocity.x, 0f);
                     
-                    // Note: 500f is a solid bounce force, but you can adjust this number!
-                    other.attachedRigidbody.AddForce(new Vector2(0f, 500f)); 
+                    // Make Mario bounce after stomping
+                    other.attachedRigidbody.AddForce(new Vector2(0f, enemyData.bounceForce)); 
                 }
 
                 Die();

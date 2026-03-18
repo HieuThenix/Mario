@@ -8,14 +8,17 @@ public class PlayerController : MonoBehaviour
     public CharacterController2D controller;
     float horizontalMove = 0f;
     public float runSpeed = 40f;
-    bool jump = false;
     bool cround = false;
+
+    [Header("Jump Buffer")]
+    public float jumpBufferWindow = 0.15f;  
+    private float lastJumpPressTime = -1f;
+    
     public Animator animator;
     public bool isBig = false;
     public bool isFireShooting = false;
     public bool isInvincible = false;
     
-    // --- NEW: Star Power Settings ---
     public bool isStarPower = false;
     public float starDuration = 5f;
 
@@ -27,10 +30,16 @@ public class PlayerController : MonoBehaviour
     public GameObject fireballPrefab; 
     public Transform firePoint;       
 
-    // --- NEW: Layer Settings for Invincibility ---
     [Header("Layer Names")]
     public string playerLayerName = "Player";
     public string enemyLayerName = "Enemy";
+
+    [Header("Mobile Controls")]
+    public MobileTouchButton leftButton;
+    public MobileTouchButton rightButton;
+    public MobileTouchButton jumpButton;
+    public MobileTouchButton crouchButton;
+    public MobileTouchButton fireButton;
 
     private Vector3 originalScale;
     private float originalJumpForce;
@@ -38,31 +47,97 @@ public class PlayerController : MonoBehaviour
 
     private float fireballCooldown = 0.3f;
     private float lastFireTime = 0f;
-
+    
     void Start()
     {
         originalScale = transform.localScale;
         originalJumpForce = controller.m_JumpForce;
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // NEW: Automatically grab UI buttons from the Persistent Canvas
+        if (MobileInputHub.Instance != null)
+        {
+            leftButton = MobileInputHub.Instance.leftBtn;
+            rightButton = MobileInputHub.Instance.rightBtn;
+            jumpButton = MobileInputHub.Instance.jumpBtn;
+            crouchButton = MobileInputHub.Instance.crouchBtn;
+            fireButton = MobileInputHub.Instance.fireBtn;
+
+            // Subscribe to events now that we have the references
+            if (jumpButton != null) jumpButton.OnButtonDown += HandleJump;
+            if (crouchButton != null)
+            {
+                crouchButton.OnButtonDown += HandleCrouchDown;
+                crouchButton.OnButtonUp += HandleCrouchUp;
+            }
+            if (fireButton != null) fireButton.OnButtonDown += HandleShoot;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Prevent memory leaks when the player is destroyed
+        if (jumpButton != null) jumpButton.OnButtonDown -= HandleJump;
+        if (crouchButton != null)
+        {
+            crouchButton.OnButtonDown -= HandleCrouchDown;
+            crouchButton.OnButtonUp -= HandleCrouchUp;
+        }
+        if (fireButton != null) fireButton.OnButtonDown -= HandleShoot;
     }
 
     void Update()
     {
-        horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;
+        // 1. Calculate Horizontal Movement (Combine PC and Mobile)
+        float moveInput = Input.GetAxisRaw("Horizontal"); // Default PC input
+
+        // Track mobile button states
+        bool leftPressed = leftButton != null && leftButton.IsPressed;
+        bool rightPressed = rightButton != null && rightButton.IsPressed;
+
+        // Override with mobile button states if either is being pressed
+        if (leftPressed || rightPressed)
+        {
+            moveInput = 0f; // Reset PC input to prioritize mobile
+            
+            if (leftPressed) moveInput -= 1f;
+            if (rightPressed) moveInput += 1f;
+            
+            // If BOTH are pressed, moveInput becomes (-1 + 1) = 0, so Mario stops!
+        }
+
+        horizontalMove = moveInput * runSpeed;
         animator.SetFloat("Speed", Mathf.Abs(horizontalMove));
 
-        if (Input.GetButtonDown("Jump")){
-            jump = true;
-            animator.SetBool("IsJumping", true);
-        }
+        // 2. PC Input Fallbacks (So you can still test on your keyboard)
+        if (Input.GetButtonDown("Jump")) HandleJump();
+        
+        if (Input.GetButtonDown("Cround")) HandleCrouchDown();
+        else if (Input.GetButtonUp("Cround")) HandleCrouchUp();
 
-        if (Input.GetButtonDown("Cround")){
-            cround = true;
-        } else if (Input.GetButtonUp("Cround")){
-            cround = false;
-        }
+        if (Input.GetKeyDown(KeyCode.LeftShift)) HandleShoot();
+    }
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && isFireShooting)
+    // --- NEW: Extracted Action Methods ---
+    private void HandleJump()
+    {
+        lastJumpPressTime = Time.time;
+        animator.SetBool("IsJumping", true);
+    }
+
+    private void HandleCrouchDown()
+    {
+        cround = true;
+    }
+
+    private void HandleCrouchUp()
+    {
+        cround = false;
+    }
+
+    private void HandleShoot()
+    {
+        if (isFireShooting)
         {
             Shoot();
         }
@@ -75,30 +150,30 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        bool jump = (Time.time - lastJumpPressTime) <= jumpBufferWindow;
         controller.Move(horizontalMove * Time.fixedDeltaTime, cround, jump);
-        jump = false;
+
+        if (jump) lastJumpPressTime = -1f;
     }
 
     public void OnPoweredUpItemCollected(string itemName)
     {   
-        itemName = itemName.ToLower();
-
         float currentDirection = Mathf.Sign(transform.localScale.x);
 
-        if (itemName == "mushroom")
+        if (string.Equals(itemName, "mushroom", System.StringComparison.OrdinalIgnoreCase))
         {
             transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f);
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
         }
-        else if (itemName == "flower") 
+        else if (string.Equals(itemName, "flower", System.StringComparison.OrdinalIgnoreCase)) 
         {
             transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f); 
             controller.m_JumpForce = originalJumpForce * 1.2f;
             isBig = true;
             isFireShooting = true;
         }
-        else if (itemName == "star")
+        else if (string.Equals(itemName, "star", System.StringComparison.OrdinalIgnoreCase))
         {
             StartCoroutine(StarPowerCoroutine());
         }
@@ -134,22 +209,20 @@ public class PlayerController : MonoBehaviour
 
         GameObject fireball = Instantiate(fireballPrefab, firePoint.position, firePoint.rotation);
         Fireball fireballScript = fireball.GetComponent<Fireball>();
-        
+        if (fireballScript == null) { Destroy(fireball); return; };
+
         float facingDirection = Mathf.Sign(transform.localScale.x);
         fireballScript.SetDirection(facingDirection);
         lastFireTime = Time.time;
     }
 
-public void TakeDamage()
+    public void TakeDamage()
     {
         if (isInvincible || isStarPower) return;
 
         if (isBig)
         {
-            // Preserve the direction Mario is currently facing ---
             float currentDirection = Mathf.Sign(transform.localScale.x);
-            
-            // Apply the original scale, but multiply the X by the current direction
             transform.localScale = new Vector3(Mathf.Abs(originalScale.x) * currentDirection, originalScale.y, originalScale.z);
             
             controller.m_JumpForce = originalJumpForce;
@@ -167,7 +240,6 @@ public void TakeDamage()
     {
         isInvincible = true;
 
-        // --- NEW: Ignore collisions between Mario and Enemies ---
         int playerLayer = LayerMask.NameToLayer(playerLayerName);
         int enemyLayer = LayerMask.NameToLayer(enemyLayerName);
         
@@ -175,23 +247,20 @@ public void TakeDamage()
         {
             Physics2D.IgnoreLayerCollision(playerLayer, enemyLayer, true);
         }
-        else
-        {
-            Debug.LogWarning("Player or Enemy layer not found! Please check your layer names.");
-        }
+
+        WaitForSeconds flashWait = new WaitForSeconds(flashInterval);
 
         float elapsed = 0f;
         while (elapsed < invincibilityDuration)
         {
             spriteRenderer.enabled = !spriteRenderer.enabled;
-            yield return new WaitForSeconds(flashInterval);
+            yield return flashWait;
             elapsed += flashInterval;
         }
 
         spriteRenderer.enabled = true;
         isInvincible = false;
 
-        // --- NEW: Restore collisions when invincibility ends ---
         if (playerLayer != -1 && enemyLayer != -1)
         {
             Physics2D.IgnoreLayerCollision(playerLayer, enemyLayer, false);

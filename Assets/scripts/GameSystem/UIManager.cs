@@ -34,7 +34,7 @@ public class UIManager : MonoBehaviour
         if (GameManager.instance == null) return;
 
         scoreText.text = GameManager.instance.Score.ToString("D3");
-        coinsText.text = "x" + GameManager.instance.Coins.ToString("D2");
+        coinsText.text = GameManager.instance.Coins.ToString("D2");
         worldText.text = GameManager.instance.World;
         timeText.text = GameManager.instance.TimeLeft.ToString("D3");
         livesText.text = GameManager.instance.Lives.ToString();

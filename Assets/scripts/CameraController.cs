@@ -21,22 +21,37 @@ public class CameraController : MonoBehaviour
     // It runs after all Update() and FixedUpdate() functions have finished.
     void LateUpdate()
     {
+        // 1. If target is missing (e.g., changing scenes), find the new one
         if (target == null)
         {
-            return;
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) 
+            {
+                target = playerObj.transform;
+                
+                // Snap instantly to the new player to avoid a long camera pan from the old level coordinates
+                Vector3 snapPosition = target.position + offset;
+
+                if (useBounds)
+                {
+                    snapPosition.x = Mathf.Clamp(snapPosition.x, minBounds.x, maxBounds.x);
+                    snapPosition.y = Mathf.Clamp(snapPosition.y, minBounds.y, maxBounds.y);
+                }
+
+                transform.position = snapPosition;
+            }
+            return; // Wait until next frame to resume smooth following
         }
 
-        // 1. Calculate the ideal target position based on the player's position + offset
+        // 2. Normal Camera Following Behavior (THIS WAS THE MISSING PART!)
         Vector3 targetPosition = target.position + offset;
 
-        // 2. Clamp the target position if bounds are enabled
         if (useBounds)
         {
             targetPosition.x = Mathf.Clamp(targetPosition.x, minBounds.x, maxBounds.x);
             targetPosition.y = Mathf.Clamp(targetPosition.y, minBounds.y, maxBounds.y);
         }
 
-        // 3. Smoothly interpolate the camera's current position towards the target position
         transform.position = Vector3.SmoothDamp(
             transform.position, 
             targetPosition, 

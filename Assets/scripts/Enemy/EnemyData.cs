@@ -22,4 +22,7 @@ public class EnemyData : ScriptableObject
 
     // How far down we cast the ledge ray; should clear one full tile height
     public float ledgeDetectionDistance = 0.5f;
+
+    // Bounce force for Mario to stomp enemy
+    public float bounceForce = 400f;
 }

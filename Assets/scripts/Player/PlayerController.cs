@@ -72,6 +72,20 @@ public class PlayerController : MonoBehaviour
             }
             if (fireButton != null) fireButton.OnButtonDown += HandleShoot;
         }
+
+        if (GameManager.instance != null)
+        {
+            isBig = GameManager.instance.savedIsBig;
+            isFireShooting = GameManager.instance.savedIsFireShooting;
+
+            // Apply physical changes if Mario was saved as Big
+            if (isBig)
+            {
+                float currentDirection = Mathf.Sign(transform.localScale.x);
+                transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f);
+                controller.m_JumpForce = originalJumpForce * 1.2f;
+            }
+        }
     }
 
     private void OnDestroy()
@@ -269,14 +283,13 @@ public class PlayerController : MonoBehaviour
 
     public void Die()
     {   
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Pit"))
+        // Reset power-ups on death so we don't respawn big!
+        if (GameManager.instance != null)
         {
-            Die(); 
+            GameManager.instance.savedIsBig = false;
+            GameManager.instance.savedIsFireShooting = false;
         }
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

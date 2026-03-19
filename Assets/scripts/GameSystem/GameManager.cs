@@ -14,6 +14,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string _world = "1-1";
     [SerializeField] private int _time = 500;
     [SerializeField] private int _lives = 8;
+    
+    [Header("Player Power-up State")]
+    public bool savedIsBig = false;
+    public bool savedIsFireShooting = false;
 
     // Public properties to access data
     public int Score => _score;

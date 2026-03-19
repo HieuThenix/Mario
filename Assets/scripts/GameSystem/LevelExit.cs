@@ -19,10 +19,20 @@ public class LevelExit : MonoBehaviour
         if (other.CompareTag("Player") && !isLoading)
         {
             isLoading = true;
+            PlayerController player = other.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                // Disable player movement
+                player.enabled = false;
 
-            // disable player movement here
-            other.GetComponent<PlayerController>().enabled = false;
-            
+                // --- NEW: Save the power-up state to the GameManager ---
+                if (GameManager.instance != null)
+                {
+                    GameManager.instance.savedIsBig = player.isBig;
+                    GameManager.instance.savedIsFireShooting = player.isFireShooting;
+                }
+            }
+
             // Start the asynchronous loading coroutine
             StartCoroutine(LoadNextSceneAsync());
         }

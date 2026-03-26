@@ -13,7 +13,11 @@ public class PlayerController : MonoBehaviour
     [Header("Jump Buffer")]
     public float jumpBufferWindow = 0.15f;  
     private float lastJumpPressTime = -1f;
-    
+
+    [Header("Power-up Settings")]
+    public float bigScale = 1.6f;
+    public float bigJumpMultiplier = 1.2f;
+        
     public Animator animator;
     public bool isBig = false;
     public bool isFireShooting = false;
@@ -82,8 +86,8 @@ public class PlayerController : MonoBehaviour
             if (isBig)
             {
                 float currentDirection = Mathf.Sign(transform.localScale.x);
-                transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f);
-                controller.m_JumpForce = originalJumpForce * 1.2f;
+                transform.localScale = new Vector3(bigScale * currentDirection, bigScale, 1f);
+                controller.m_JumpForce = originalJumpForce * bigJumpMultiplier;
             }
         }
     }
@@ -176,14 +180,14 @@ public class PlayerController : MonoBehaviour
 
         if (string.Equals(itemName, "mushroom", System.StringComparison.OrdinalIgnoreCase))
         {
-            transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f);
-            controller.m_JumpForce = originalJumpForce * 1.2f;
+            transform.localScale = new Vector3(bigScale * currentDirection, bigScale, 1f);
+            controller.m_JumpForce = originalJumpForce * bigJumpMultiplier;
             isBig = true;
         }
         else if (string.Equals(itemName, "flower", System.StringComparison.OrdinalIgnoreCase)) 
         {
-            transform.localScale = new Vector3(1.6f * currentDirection, 1.6f, 1f); 
-            controller.m_JumpForce = originalJumpForce * 1.2f;
+            transform.localScale = new Vector3(bigScale * currentDirection, bigScale, 1f); 
+            controller.m_JumpForce = originalJumpForce * bigJumpMultiplier;
             isBig = true;
             isFireShooting = true;
         }
@@ -291,5 +295,11 @@ public class PlayerController : MonoBehaviour
         }
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Pit")) Die();
+
     }
 }

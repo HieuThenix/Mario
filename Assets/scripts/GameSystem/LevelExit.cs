@@ -25,7 +25,7 @@ public class LevelExit : MonoBehaviour
                 // Disable player movement
                 player.enabled = false;
 
-                // --- NEW: Save the power-up state to the GameManager ---
+                // Save the power-up state to the GameManager ---
                 if (GameManager.instance != null)
                 {
                     GameManager.instance.savedIsBig = player.isBig;

@@ -3158,6 +3158,8 @@ MonoBehaviour:
   _world: 1-1
   _time: 500
   _lives: 10
+  savedIsBig: 0
+  savedIsFireShooting: 0
 --- !u!4 &1392731701
 Transform:
   m_ObjectHideFlags: 0
@@ -5144,12 +5146,16 @@ PrefabInstance:
       value: KillZone
       objectReference: {fileID: 0}
     - target: {fileID: 9167079481386076000, guid: e0580028ccc3b7640b9f932e64a6526e, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.3619542
+      objectReference: {fileID: 0}
+    - target: {fileID: 9167079481386076000, guid: e0580028ccc3b7640b9f932e64a6526e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 19.23
+      value: 46.8
       objectReference: {fileID: 0}
     - target: {fileID: 9167079481386076000, guid: e0580028ccc3b7640b9f932e64a6526e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.43
+      value: -5.3
       objectReference: {fileID: 0}
     - target: {fileID: 9167079481386076000, guid: e0580028ccc3b7640b9f932e64a6526e, type: 3}
       propertyPath: m_LocalPosition.z

@@ -7,6 +7,7 @@ TagManager:
   - Collectible
   - Enemy
   - Pit
+  - Chest
   layers:
   - Default
   - TransparentFX

@@ -4,20 +4,30 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class Chest : MonoBehaviour
 {
+    // 1. We use an enum to explicitly define the chest's behavior in memory-efficient way.
+    public enum ChestContentType
+    {
+        Coin,
+        PowerUp
+    }
+
+    [Header("Chest Configuration")]
+    [Tooltip("Determine what this specific chest instance will spawn.")]
+    public ChestContentType contentType = ChestContentType.Coin;
+
     [Header("Visuals")]
     [Tooltip("The sprite to display after the block has been hit.")]
     public Sprite emptyBlockSprite;
     private SpriteRenderer spriteRenderer;
 
-    [Header("Power-Up Prefabs")]
+    [Header("Prefabs")]
+    public GameObject coinPrefab;
     public GameObject mushroomPrefab;
     public GameObject flowerPrefab;
     public GameObject starPrefab;
 
     [Header("State")]
-    // We keep this private because other scripts shouldn't be able to magically empty the block
     private bool isEmpty = false; 
-
 
     void Awake()
     {
@@ -27,13 +37,11 @@ public class Chest : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // 1. Check if the object hitting the block is the Player
+        // Check if the object hitting the block is the Player
         if (collision.gameObject.CompareTag("Player"))
         {
-            // 2. If the block is already empty, ignore the hit
             if (isEmpty) return;
 
-            // 3. Check the direction of the hit
             // collision.contacts[0].normal gives us the direction of the collision force
             Vector2 hitDirection = collision.GetContact(0).normal;
 
@@ -47,9 +55,7 @@ public class Chest : MonoBehaviour
 
     void HandleBottomHit()
     {
-        Debug.Log("Mario hit the block from below!");
-        
-        // Update the state
+        // Update the state immediately
         isEmpty = true;
 
         // Change the visual to the empty brown block
@@ -58,9 +64,31 @@ public class Chest : MonoBehaviour
             spriteRenderer.sprite = emptyBlockSprite;
         }
 
-        EvaluateAndSpawnItem();
-        // TODO: We will add the Coroutine for the "bounce" animation here later
-        // TODO: We will add the logic to spawn the coin/mushroom here later
+        // 2. Deductive routing based on the designer's selected content type
+        if (contentType == ChestContentType.Coin)
+        {
+            SpawnCoin();
+        }
+        else if (contentType == ChestContentType.PowerUp)
+        {
+            EvaluateAndSpawnItem();
+        }
+        
+        // TODO: Coroutine for the "bounce" animation goes here
+    }
+
+    private void SpawnCoin()
+    {
+        if (coinPrefab != null)
+        {
+            // Spawn the item 1 unit above the chest. 
+            // Using Vector3.up prevents allocating a new Vector3 struct in memory.
+            Instantiate(coinPrefab, transform.position + Vector3.up, Quaternion.identity);
+        }
+        else
+        {
+            Debug.LogWarning("[Chest] Coin prefab is not assigned in the Inspector!");
+        }
     }
 
     private void EvaluateAndSpawnItem()
@@ -68,7 +96,6 @@ public class Chest : MonoBehaviour
         GameObject itemToSpawn = null;
 
         // Deductive State Evaluation
-        // We cascade through the states to determine the optimal upgrade
         if (!GameManager.instance.savedIsBig)
         {
             itemToSpawn = mushroomPrefab;
@@ -85,13 +112,11 @@ public class Chest : MonoBehaviour
 
         if (itemToSpawn != null)
         {
-            // Spawn the item 1 unit above the chest. 
-            // Using Vector3.up prevents allocating a new Vector3 struct in memory.
             Instantiate(itemToSpawn, transform.position + Vector3.up, Quaternion.identity);
         }
         else
         {
-            Debug.LogWarning($"[Chest] Valid prefab not assigned for current player state.");
+            Debug.LogWarning("[Chest] Valid power-up prefab not assigned for current player state.");
         }
     }
 }

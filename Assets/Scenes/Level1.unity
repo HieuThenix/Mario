@@ -980,7 +980,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.4546213, y: -0.53647614, z: -9.898128}
+  m_LocalPosition: {x: 1.81, y: 1.56, z: -9.898128}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1773,6 +1773,7 @@ GameObject:
   m_Component:
   - component: {fileID: 737671608}
   - component: {fileID: 737671607}
+  - component: {fileID: 737671609}
   m_Layer: 3
   m_Name: Background
   m_TagString: Untagged
@@ -1826,7 +1827,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 112.10293, y: 15.36}
+  m_Size: {x: 42.633152, y: 15.36}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1841,12 +1842,26 @@ Transform:
   m_GameObject: {fileID: 737671606}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 45.9815, y: 3.6, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 9.5, y: 4.1, z: 0}
+  m_LocalScale: {x: 1.01, y: 1.2805884, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &737671609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 737671606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9f1fdd79474df46b4494729612bc74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cam: {fileID: 0}
+  parallaxFactor: 0.5
 --- !u!1 &763345889
 GameObject:
   m_ObjectHideFlags: 0
@@ -3435,7 +3450,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -14.110001}
+  m_AnchoredPosition: {x: 0, y: -14.109985}
   m_SizeDelta: {x: 0, y: 53.53}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1610292666
@@ -5382,6 +5397,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1435175660300168454, guid: 386887ff14ca7644d90271638d692f21, type: 3}
+      propertyPath: m_JumpForce
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 3393647962901797464, guid: 386887ff14ca7644d90271638d692f21, type: 3}
       propertyPath: fireButton
       value: 

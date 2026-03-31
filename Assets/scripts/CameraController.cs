@@ -43,7 +43,7 @@ public class CameraController : MonoBehaviour
             return; // Wait until next frame to resume smooth following
         }
 
-        // 2. Normal Camera Following Behavior (THIS WAS THE MISSING PART!)
+        // 2. Normal Camera Following Behavior
         Vector3 targetPosition = target.position + offset;
 
         if (useBounds)

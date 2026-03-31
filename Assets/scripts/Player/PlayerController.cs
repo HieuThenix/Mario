@@ -183,13 +183,12 @@ public class PlayerController : MonoBehaviour
             transform.localScale = new Vector3(bigScale * currentDirection, bigScale, 1f);
             controller.m_JumpForce = originalJumpForce * bigJumpMultiplier;
             isBig = true;
+            GameManager.instance.savedIsBig = isBig;
         }
         else if (string.Equals(itemName, "flower", System.StringComparison.OrdinalIgnoreCase)) 
         {
-            transform.localScale = new Vector3(bigScale * currentDirection, bigScale, 1f); 
-            controller.m_JumpForce = originalJumpForce * bigJumpMultiplier;
-            isBig = true;
             isFireShooting = true;
+            GameManager.instance.savedIsFireShooting = isFireShooting;
         }
         else if (string.Equals(itemName, "star", System.StringComparison.OrdinalIgnoreCase))
         {
@@ -293,7 +292,7 @@ public class PlayerController : MonoBehaviour
             GameManager.instance.savedIsBig = false;
             GameManager.instance.savedIsFireShooting = false;
         }
-
+        
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

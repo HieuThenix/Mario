@@ -34,6 +34,12 @@ public class PlayerController : MonoBehaviour
     public GameObject fireballPrefab; 
     public Transform firePoint;       
 
+
+    [Header("Color Settings")] // NEW: Added color management
+    //[SerializeField] private Color fireColor = new Color(1f, 0.45f, 0f); // orange-fire default
+    public Color fireColor = Color.yellow;
+    private Color originalColor;
+
     [Header("Layer Names")]
     public string playerLayerName = "Player";
     public string enemyLayerName = "Enemy";
@@ -57,6 +63,8 @@ public class PlayerController : MonoBehaviour
         originalScale = transform.localScale;
         originalJumpForce = controller.m_JumpForce;
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        originalColor = spriteRenderer.color;
 
         // NEW: Automatically grab UI buttons from the Persistent Canvas
         if (MobileInputHub.Instance != null)
@@ -88,6 +96,11 @@ public class PlayerController : MonoBehaviour
                 float currentDirection = Mathf.Sign(transform.localScale.x);
                 transform.localScale = new Vector3(bigScale * currentDirection, bigScale, 1f);
                 controller.m_JumpForce = originalJumpForce * bigJumpMultiplier;
+            }
+
+            if (isFireShooting)
+            {
+                spriteRenderer.color = fireColor;
             }
         }
     }
@@ -136,7 +149,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftShift)) HandleShoot();
     }
 
-    // --- NEW: Extracted Action Methods ---
+    // Extracted Action Methods ---
     private void HandleJump()
     {
         lastJumpPressTime = Time.time;
@@ -188,6 +201,8 @@ public class PlayerController : MonoBehaviour
         else if (string.Equals(itemName, "flower", System.StringComparison.OrdinalIgnoreCase)) 
         {
             isFireShooting = true;
+            spriteRenderer.color = fireColor;
+
             GameManager.instance.savedIsFireShooting = isFireShooting;
         }
         else if (string.Equals(itemName, "star", System.StringComparison.OrdinalIgnoreCase))
@@ -210,7 +225,7 @@ public class PlayerController : MonoBehaviour
             yield return null; 
         }
 
-        spriteRenderer.color = Color.white; 
+        spriteRenderer.color = isFireShooting ? fireColor : originalColor; 
         isStarPower = false;
     }
 
@@ -245,6 +260,7 @@ public class PlayerController : MonoBehaviour
             controller.m_JumpForce = originalJumpForce;
             isBig = false;
             isFireShooting = false; 
+            spriteRenderer.color = originalColor;
             StartCoroutine(InvincibilityCoroutine());
         }
         else
